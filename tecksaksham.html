@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediBot - AI Healthcare Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0066cc;
+            --secondary: #00a3cc;
+            --accent: #00cc99;
+            --warning: #ff9933;
+            --danger: #ff3366;
+            --light: #f8fafc;
+            --dark: #1a202c;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 20px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .logo-container {
+            margin-bottom: 10px;
+        }
+
+        .logo-icon {
+            font-size: 2.5em;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .chat-header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .quick-actions {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: var(--light);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .action-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 50px;
+            background: white;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .action-btn i {
+            font-size: 1.2em;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: var(--light);
+        }
+
+        .message {
+            margin-bottom: 15px;
+            max-width: 80%;
+            padding: 15px;
+            border-radius: 15px;
+            position: relative;
+            animation: messageAppear 0.3s ease-out;
+        }
+
+        .bot-message {
+            background: white;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding-left: 45px;
+        }
+
+        .bot-message::before {
+            content: '🤖';
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .user-message {
+            background: var(--primary);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+            padding-right: 45px;
+        }
+
+        .user-message::after {
+            content: '👤';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-container {
+            flex: 1;
+            display: flex;
+            background: var(--light);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .input-container:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            background: transparent;
+        }
+
+        .send-btn {
+            padding: 12px 25px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .send-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 15px;
+            background: white;
+            border-radius: 15px;
+            width: fit-content;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: typing 1s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="logo-container">
+                <i class="fas fa-staff-snake logo-icon"></i>
+            </div>
+            <h1>MediBot</h1>
+            <p>Your AI Healthcare Assistant</p>
+        </div>
+        
+        <div class="quick-actions">
+            <button class="action-btn" onclick="handleQuickAction('emergency')">
+                <i class="fas fa-ambulance"></i> Emergency
+            </button>
+            <button class="action-btn" onclick="handleQuickAction('symptoms')">
+                <i class="fas fa-stethoscope"></i> Symptoms
+            </button>
+            <button class="action-btn" onclick="handleQuickAction('mental')">
+                <i class="fas fa-brain"></i> Mental Health
+            </button>
+            <button class="action-btn" onclick="handleQuickAction('firstaid')">
+                <i class="fas fa-kit-medical"></i> First Aid
+            </button>
+        </div>
+
+        <div class="chat-messages" id="chatMessages"></div>
+
+        <div class="chat-input">
+            <div class="input-container">
+                <input 
+                    type="text" 
+                    id="userInput" 
+                    placeholder="Type your health concern..."
+                    onkeypress="if(event.key === 'Enter') handleUserInput()"
+                >
+            </div>
+            <button class="send-btn" onclick="handleUserInput()">
+                Send <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize chat
+        window.onload = function() {
+            addMessage("👋 Hello! I'm MediBot, your healthcare assistant.\n\n• I can help you with:\n  - Medical symptoms\n  - Finding doctors\n  - Emergency guidance\n  - Mental health support\n  - First aid advice", 'bot-message');
+        }
+
+        function handleUserInput() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            
+            if (message === '') return;
+
+            // Add user message
+            addMessage(message, 'user-message');
+            input.value = '';
+
+            // Process and respond
+            setTimeout(() => {
+                const response = processMessage(message);
+                addMessage(response, 'bot-message');
+            }, 500);
+        }
+
+        function handleQuickAction(type) {
+            let response = '';
+            switch(type) {
+                case 'emergency':
+                    response = `🚨 Emergency Services:
+
+• Call 911 immediately for:
+  - Chest pain
+  - Difficulty breathing
+  - Severe injuries
+  - Stroke symptoms
+  - Loss of consciousness
+
+• While waiting:
+  - Stay calm
+  - Unlock the door
+  - Gather medications
+  - Have someone meet responders`;
+                    break;
+                case 'symptoms':
+                    response = `🏥 Symptom Checker:
+
+• Please describe your symptoms:
+  - Location of discomfort
+  - Duration
+  - Severity
+  - Associated symptoms
+  - What makes it better/worse
+
+• Common symptoms I can help with:
+  - Headache
+  - Fever
+  - Stomach pain
+  - Breathing issues
+  - Skin problems`;
+                    break;
+                case 'mental':
+                    response = `🧠 Mental Health Support:
+
+• Immediate Help:
+  - Crisis Hotline: 988
+  - Text HOME to 741741
+  - Available 24/7
+  - Confidential support
+
+• Resources:
+  - Professional counseling
+  - Support groups
+  - Self-help tools
+  - Emergency services`;
+                    break;
+                case 'firstaid':
+                    response = `🩹 First Aid Guide:
+
+• Common situations:
+  - Cuts and scrapes
+  - Burns
+  - Sprains
+  - Minor injuries
+  - Allergic reactions
+
+• Basic steps:
+  - Clean wounds
+  - Apply pressure to bleeding
+  - Use appropriate dressing
+  - Monitor for infection`;
+                    break;
+            }
+            addMessage(response, 'bot-message');
+        }
+
+        function processMessage(message) {
+            const msg = message.toLowerCase();
+            
+            // Emergency conditions
+            if (msg.includes('emergency') || msg.includes('help') || msg.includes('911')) {
+                return `🚨 Emergency Services:
+
+• Call 911 immediately if you have:
+  - Chest pain
+  - Difficulty breathing
+  - Severe bleeding
+  - Stroke symptoms
+  - Loss of consciousness
+
+• Do not delay seeking emergency care!`;
+            }
+
+            // Headache
+            if (msg.includes('headache') || msg.includes('head pain') || msg.includes('migraine')) {
+                return `🤕 Headache Management:
+
+• Immediate steps:
+  - Rest in a dark, quiet room
+  - Stay hydrated
+  - Take over-the-counter pain relievers
+  - Apply cold/warm compress
+
+• Seek immediate care if:
+  - Sudden, severe headache
+  - With fever/stiff neck
+  - After head injury
+  - Vision changes`;
+            }
+
+            // Mental health
+            if (msg.includes('anxiety') || msg.includes('stress') || msg.includes('depress')) {
+                return `🧠 Mental Health Support:
+
+• Immediate help:
+  - Crisis Hotline: 988
+  - Text HOME to 741741
+  - Professional help available
+  - You're not alone
+
+• Self-care steps:
+  - Deep breathing
+  - Talk to someone you trust
+  - Regular exercise
+  - Healthy sleep habits`;
+            }
+
+            // Default response
+            return `I understand you're asking about "${message}".
+
+• I can help with:
+  - Specific symptoms
+  - First aid guidance
+  - Mental health support
+  - Emergency situations
+
+Please be more specific about your health concern.`;
+        }
+
+        function addMessage(text, className) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+            messageDiv.innerText = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    </script>
+</body>
+</html> 
